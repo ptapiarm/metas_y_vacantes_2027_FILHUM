@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visualizador de Metas 2027 — Filosofía y Humanidades | UAH</title>
+<style>
+  :root{
+    --bg:#ecebe5;
+    --ink:#000000;
+    --accent:#ff6f43;
+    --white:#ffffff;
+    --ink-60:rgba(0,0,0,.6);
+    --ink-40:rgba(0,0,0,.4);
+    --ink-15:rgba(0,0,0,.12);
+    --accent-10:rgba(255,111,67,.10);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;-webkit-font-smoothing:antialiased;}
+  .topbar{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:2px solid var(--ink);padding:22px clamp(16px,4vw,48px) 18px;}
+  .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:6px;}
+  h1{margin:0;font-size:clamp(22px,2.6vw,32px);font-weight:800;letter-spacing:-.01em;line-height:1.1;}
+  .sub{margin-top:6px;font-size:13.5px;color:var(--ink-60);max-width:760px;line-height:1.5;}
+  .topbar-meta{display:flex;gap:22px;margin-top:14px;flex-wrap:wrap;}
+  .topbar-meta .stat{font-size:12px;color:var(--ink-60);}
+  .topbar-meta .stat b{color:var(--ink);font-size:15px;display:block;font-weight:800;}
+  main{padding:26px clamp(16px,4vw,48px) 64px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:22px;}
+  .card{background:var(--white);border:1px solid var(--ink-15);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;}
+  .card-head{padding:16px 18px 14px;border-bottom:1px solid var(--ink-15);}
+  .card-head .tag{font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--accent);}
+  .card-head h2{margin:3px 0 4px;font-size:19px;font-weight:800;letter-spacing:-.01em;line-height:1.15;}
+  .card-head .codes{font-size:11px;color:var(--ink-40);font-variant-numeric:tabular-nums;}
+  .section{padding:14px 18px;border-bottom:1px solid var(--ink-15);}
+  .section:last-child{border-bottom:none;}
+  .section-title{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--ink-40);margin:0 0 10px;}
+  .rm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .rm-item{background:var(--bg);border-radius:8px;padding:8px 9px;}
+  .rm-item .v{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;}
+  .rm-item .l{font-size:9.5px;color:var(--ink-60);line-height:1.25;margin-top:2px;}
+  .rm-item .v.pos{color:#1a7d3d;}
+  .rm-item .v.neg{color:#c23b22;}
+  .hist-row{display:flex;align-items:flex-end;gap:6px;height:64px;margin-bottom:6px;}
+  .hist-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;}
+  .hist-bar{width:100%;max-width:34px;background:var(--ink-15);border-radius:4px 4px 0 0;}
+  .hist-bar.current{background:var(--accent);}
+  .hist-val{font-size:9.5px;font-weight:700;margin-bottom:2px;font-variant-numeric:tabular-nums;}
+  .hist-year{font-size:9px;color:var(--ink-40);margin-top:4px;}
+  .cumpl-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:10px;border-top:1px dashed var(--ink-15);}
+  .cumpl-label{font-size:11px;color:var(--ink-60);}
+  .cumpl-badge{font-size:12.5px;font-weight:800;padding:3px 9px;border-radius:20px;font-variant-numeric:tabular-nums;}
+  .cumpl-badge.ok{background:rgba(26,125,61,.12);color:#1a7d3d;}
+  .cumpl-badge.warn{background:rgba(194,59,34,.12);color:#c23b22;}
+  .opt-select{width:100%;padding:9px 10px;border-radius:8px;border:1.5px solid var(--ink);font-size:13px;font-weight:700;background:var(--white);color:var(--ink);font-family:inherit;cursor:pointer;margin-bottom:10px;}
+  .opt-list{display:flex;flex-direction:column;gap:4px;max-height:0;overflow:hidden;transition:max-height .25s ease;}
+  .opt-list.open{max-height:400px;}
+  .opt-row{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;padding:5px 8px;border-radius:6px;color:var(--ink-60);}
+  .opt-row.selected{background:var(--accent-10);color:var(--ink);font-weight:700;}
+  .opt-row .val{font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .opt-toggle{font-size:10.5px;color:var(--accent);font-weight:700;cursor:pointer;user-select:none;text-align:right;margin-top:2px;}
+  .meta-hero{background:var(--ink);color:var(--white);border-radius:10px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .meta-hero .l{font-size:11px;letter-spacing:.06em;text-transform:uppercase;opacity:.7;}
+  .meta-hero .v{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent);}
+  .meta-sub{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .meta-sub .item{background:var(--bg);border-radius:8px;padding:8px 9px;}
+  .meta-sub .v{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;}
+  .meta-sub .l{font-size:9px;color:var(--ink-60);margin-top:1px;}
+  .cupos-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .cupos-col{background:var(--bg);border-radius:8px;padding:10px 11px;}
+  .cupos-col .yr{font-size:10px;font-weight:700;color:var(--ink-40);text-transform:uppercase;letter-spacing:.06em;}
+  .cupos-col.next{border:1.5px solid var(--accent);background:var(--accent-10);}
+  .cupos-row{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;}
+  .cupos-row .l{font-size:11px;color:var(--ink-60);}
+  .cupos-row .v{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;}
+  .cupos-bar{height:6px;border-radius:3px;background:var(--ink-15);margin-top:8px;overflow:hidden;display:flex;}
+  .cupos-bar .fill{background:var(--ink);height:100%;}
+  .cupos-bar .fillsc{background:var(--accent);height:100%;}
+  footer{padding:20px clamp(16px,4vw,48px) 40px;color:var(--ink-40);font-size:11.5px;line-height:1.6;}
+  footer b{color:var(--ink-60);}
+  @media (max-width:480px){.rm-grid{grid-template-columns:repeat(2,1fr);}.meta-sub{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="eyebrow">UAH · Facultad de Filosofía y Humanidades</div>
+  <h1>Visualizador de Metas 2027</h1>
+  <div class="sub">Matrícula histórica, contexto de sistema RM y proyección de metas 2027 por carrera. Cambia la opción elegida en cada tarjeta para recalcular la meta de admisión acumulada, centralizada y directa.</div>
+  <div class="topbar-meta" id="topbarStats"></div>
+</div>
+<main><div class="grid" id="cardsGrid"></div></main>
+<footer>Fórmula de recálculo — Admisión acumulada = MÚLTIPLO.SUPERIOR( Meta 30 abril / (1 − %pérdida acum. 2026) ; 1 ). Centralizada = admisión acumulada × % matrícula centralizada sobre seleccionados 2026. Directa = admisión acumulada − centralizada. Cupos 2026/2027 y sobrecupos son asignaciones fijas del plan y no varían con la opción elegida.</footer>
+<script>
+const DATA = [
+{"carrera": "Pedagogía Lengua Castellana y Com.", "facultad": "Filosofía y Humanidades", "siga": 19, "demre": 45019, "hist": [43, 55, 46, 50, 58], "AB": 50, "AN": 53, "S": 0.0333, "BD": 0.849057, "AH": 8, "PC26": 0.75, "MAJ": 59, "MAK": 44, "MAL": 15, "opciones": {"1": {"label": "Prom 3 años (2024–2026)", "val": 51}, "2": {"label": "Prom 2 años (2025–2026)", "val": 54}, "3": {"label": "Últ. año (2026)", "val": 58}, "4": {"label": "+5% últ. año", "val": 61}, "5": {"label": "Meta 2026 (1er sem)", "val": 50}, "6": {"label": "60% lista de espera", "val": 58}, "7": {"label": "Mat. últ. año × No cumpl. req. 2027", "val": 49}, "8": {"label": "Tend. crec. 2025–2026 UAH × No cumpl. req.", "val": 56.4}, "9": {"label": "Tend. crec. 2025–2026 UAH", "val": 67.3}}, "AG": 48, "AO": 4, "AP": 3, "AQ": -1, "AR": -0.0052, "AX": 45, "AY": 20, "AZ": 40, "BA": 15, "histYears": [2022, 2023, 2024, 2025, 2026]},
+{"carrera": "Pedagogía en Música", "facultad": "Filosofía y Humanidades", "siga": 25, "demre": 45025, "hist": [61, 85, 75, 87, 94], "AB": 91, "AN": 93, "S": 0.0208, "BD": 0.888889, "AH": 8, "PC26": 0.833333, "MAJ": 96, "MAK": 80, "MAL": 16, "opciones": {"1": {"label": "Prom 3 años (2024–2026)", "val": 85}, "2": {"label": "Prom 2 años (2025–2026)", "val": 90}, "3": {"label": "Últ. año (2026)", "val": 94}, "4": {"label": "+5% últ. año", "val": 99}, "5": {"label": "Meta 2026 (1er sem)", "val": 91}, "6": {"label": "60% lista de espera", "val": 95}, "7": {"label": "Mat. últ. año × No cumpl. req. 2027", "val": 86}, "8": {"label": "Tend. crec. 2025–2026 UAH × No cumpl. req.", "val": 92.8}, "9": {"label": "Tend. crec. 2025–2026 UAH", "val": 101.6}}, "AG": 46, "AO": 1, "AP": 50, "AQ": -5, "AR": -0.098, "AX": 70, "AY": 20, "AZ": 70, "BA": 20, "histYears": [2022, 2023, 2024, 2025, 2026]},
+{"carrera": "Pedagogía en Historia y Cs Sociales", "facultad": "Filosofía y Humanidades", "siga": 20, "demre": 45020, "hist": [48, 72, 55, 54, 47], "AB": 55, "AN": 57, "S": 0.0784, "BD": 0.853659, "AH": 7, "PC26": 0.686275, "MAJ": 45, "MAK": 31, "MAL": 14, "opciones": {"1": {"label": "Prom 3 años (2024–2026)", "val": 52}, "2": {"label": "Prom 2 años (2025–2026)", "val": 50}, "3": {"label": "Últ. año (2026)", "val": 47}, "4": {"label": "+5% últ. año", "val": 49}, "5": {"label": "Meta 2026 (1er sem)", "val": 55}, "6": {"label": "60% lista de espera", "val": 47}, "7": {"label": "Mat. últ. año × No cumpl. req. 2027", "val": 41}, "8": {"label": "Tend. crec. 2025–2026 UAH × No cumpl. req.", "val": 35.9}, "9": {"label": "Tend. crec. 2025–2026 UAH", "val": 40.9}}, "AG": 59, "AO": 3, "AP": -23, "AQ": 14, "AR": 0.0854, "AX": 65, "AY": 15, "AZ": 40, "BA": 5, "histYears": [2022, 2023, 2024, 2025, 2026]},
+{"carrera": "Bachillerato en Humanidades", "facultad": "Filosofía y Humanidades", "siga": 14, "demre": 45014, "hist": [58, 56, 61, 53, 43], "AB": 56, "AN": 58, "S": 0.0227, "BD": 1.0, "AH": 4, "PC26": 0.931818, "MAJ": 47, "MAK": 44, "MAL": 3, "opciones": {"1": {"label": "Prom 3 años (2024–2026)", "val": 52}, "2": {"label": "Prom 2 años (2025–2026)", "val": 48}, "3": {"label": "Últ. año (2026)", "val": 43}, "4": {"label": "+5% últ. año", "val": 45}, "5": {"label": "Meta 2026 (1er sem)", "val": 56}, "6": {"label": "60% lista de espera", "val": 43}, "7": {"label": "Mat. últ. año × No cumpl. req. 2027", "val": "-"}, "8": {"label": "Tend. crec. 2025–2026 UAH × No cumpl. req.", "val": "-"}, "9": {"label": "Tend. crec. 2025–2026 UAH", "val": "-"}}, "AG": 15, "AO": 1, "AP": 25, "AQ": 5, "AR": 0.5, "AX": 60, "AY": 10, "AZ": 50, "BA": 15, "histYears": [2022, 2023, 2024, 2025, 2026]},
+{"carrera": "Licenciatura en Filosofía", "facultad": "Filosofía y Humanidades", "siga": 10, "demre": 45010, "hist": [10, 9, 8, 8, 10], "AB": 8, "AN": 8, "S": 0.0, "BD": 0.428571, "AH": 3, "PC26": 0.3, "MAJ": 11, "MAK": 3, "MAL": 8, "opciones": {"1": {"label": "Prom 3 años (2024–2026)", "val": 9}, "2": {"label": "Prom 2 años (2025–2026)", "val": 9}, "3": {"label": "Últ. año (2026)", "val": 10}, "4": {"label": "+5% últ. año", "val": 10}, "5": {"label": "Meta 2026 (1er sem)", "val": 8}, "6": {"label": "60% lista de espera", "val": 10}, "7": {"label": "Mat. últ. año × No cumpl. req. 2027", "val": "-"}, "8": {"label": "Tend. crec. 2025–2026 UAH × No cumpl. req.", "val": "-"}, "9": {"label": "Tend. crec. 2025–2026 UAH", "val": "-"}}, "AG": 30, "AO": 3, "AP": -27, "AQ": -30, "AR": -0.25, "AX": 10, "AY": 5, "AZ": 10, "BA": 5, "histYears": [2022, 2023, 2024, 2025, 2026]},
+{"carrera": "Licenciatura en Historia", "facultad": "Filosofía y Humanidades", "siga": 17, "demre": 45017, "hist": [35, 34, 23, 20, 23], "AB": 20, "AN": 22, "S": 0.1481, "BD": 0.857143, "AH": 3, "PC26": 0.888889, "MAJ": 26, "MAK": 23, "MAL": 3, "opciones": {"1": {"label": "Prom 3 años (2024–2026)", "val": 22}, "2": {"label": "Prom 2 años (2025–2026)", "val": 22}, "3": {"label": "Últ. año (2026)", "val": 23}, "4": {"label": "+5% últ. año", "val": 24}, "5": {"label": "Meta 2026 (1er sem)", "val": 20}, "6": {"label": "60% lista de espera", "val": 23}, "7": {"label": "Mat. últ. año × No cumpl. req. 2027", "val": "-"}, "8": {"label": "Tend. crec. 2025–2026 UAH × No cumpl. req.", "val": "-"}, "9": {"label": "Tend. crec. 2025–2026 UAH", "val": "-"}}, "AG": 38, "AO": 7, "AP": -7, "AQ": -11, "AR": -0.0397, "AX": 20, "AY": 10, "AZ": 20, "BA": 15, "histYears": [2022, 2023, 2024, 2025, 2026]},
+{"carrera": "Licenciatura en Lengua y Literatura", "facultad": "Filosofía y Humanidades", "siga": 11, "demre": 45011, "hist": [35, 38, 17, 30, 28], "AB": 29, "AN": 30, "S": 0.0345, "BD": 0.88, "AH": 3, "PC26": 0.758621, "MAJ": 30, "MAK": 23, "MAL": 7, "opciones": {"1": {"label": "Prom 3 años (2024–2026)", "val": 25}, "2": {"label": "Prom 2 años (2025–2026)", "val": 29}, "3": {"label": "Últ. año (2026)", "val": 28}, "4": {"label": "+5% últ. año", "val": 29}, "5": {"label": "Meta 2026 (1er sem)", "val": 29}, "6": {"label": "60% lista de espera", "val": 28}, "7": {"label": "Mat. últ. año × No cumpl. req. 2027", "val": "-"}, "8": {"label": "Tend. crec. 2025–2026 UAH × No cumpl. req.", "val": "-"}, "9": {"label": "Tend. crec. 2025–2026 UAH", "val": "-"}}, "AG": 32, "AO": 4, "AP": -5, "AQ": -19, "AR": -0.131, "AX": 20, "AY": 10, "AZ": 20, "BA": 10, "histYears": [2022, 2023, 2024, 2025, 2026]},
+{"carrera": "Licenciatura en Teoría e Hist. del Arte", "facultad": "Filosofía y Humanidades", "siga": 34, "demre": 45034, "hist": [21, 25, 20, 14, 12], "AB": 17, "AN": 23, "S": 0.1429, "BD": 0.785714, "AH": 4, "PC26": 0.785714, "MAJ": 16, "MAK": 13, "MAL": 3, "opciones": {"1": {"label": "Prom 3 años (2024–2026)", "val": 15}, "2": {"label": "Prom 2 años (2025–2026)", "val": 13}, "3": {"label": "Últ. año (2026)", "val": 12}, "4": {"label": "+5% últ. año", "val": 13}, "5": {"label": "Meta 2026 (1er sem)", "val": 17}, "6": {"label": "60% lista de espera", "val": 12}, "7": {"label": "Mat. últ. año × No cumpl. req. 2027", "val": "-"}, "8": {"label": "Tend. crec. 2025–2026 UAH × No cumpl. req.", "val": "-"}, "9": {"label": "Tend. crec. 2025–2026 UAH", "val": "-"}}, "AG": 40, "AO": 3, "AP": -29, "AQ": 78, "AR": 1.814, "AX": 20, "AY": 10, "AZ": 15, "BA": 10, "histYears": [2022, 2023, 2024, 2025, 2026]},
+{"carrera": "Pedagogía en Filosofía", "facultad": "Filosofía y Humanidades", "siga": 18, "demre": 45018, "hist": [11, 17, 9, 8, 9], "AB": 8, "AN": 8, "S": 0.0, "BD": 1.0, "AH": 3, "PC26": 1.0, "MAJ": 9, "MAK": 9, "MAL": 0, "opciones": {"1": {"label": "Prom 3 años (2024–2026)", "val": 9}, "2": {"label": "Prom 2 años (2025–2026)", "val": 8}, "3": {"label": "Últ. año (2026)", "val": 9}, "4": {"label": "+5% últ. año", "val": 9}, "5": {"label": "Meta 2026 (1er sem)", "val": 8}, "6": {"label": "60% lista de espera", "val": 9}, "7": {"label": "Mat. últ. año × No cumpl. req. 2027", "val": 9}, "8": {"label": "Tend. crec. 2025–2026 UAH × No cumpl. req.", "val": 10.1}, "9": {"label": "Tend. crec. 2025–2026 UAH", "val": 10.1}}, "AG": 19, "AO": 2, "AP": -10, "AQ": 5, "AR": 0.1515, "AX": 10, "AY": 5, "AZ": 10, "BA": 5, "histYears": [2022, 2023, 2024, 2025, 2026]},
+{"carrera": "Pedagogía en Artes Visuales", "facultad": "Filosofía y Humanidades", "siga": 35, "demre": 45035, "hist": [32, 43, 47, 48, 35], "AB": 48, "AN": 52, "S": 0.0278, "BD": 0.878788, "AH": 7, "PC26": 0.805556, "MAJ": 34, "MAK": 27, "MAL": 7, "opciones": {"1": {"label": "Prom 3 años (2024–2026)", "val": 43}, "2": {"label": "Prom 2 años (2025–2026)", "val": 42}, "3": {"label": "Últ. año (2026)", "val": 35}, "4": {"label": "+5% últ. año", "val": 37}, "5": {"label": "Meta 2026 (1er sem)", "val": 48}, "6": {"label": "60% lista de espera", "val": 35}, "7": {"label": "Mat. últ. año × No cumpl. req. 2027", "val": 33}, "8": {"label": "Tend. crec. 2025–2026 UAH × No cumpl. req.", "val": 24}, "9": {"label": "Tend. crec. 2025–2026 UAH", "val": 25.5}}, "AG": 22, "AO": 2, "AP": 8, "AQ": -21, "AR": -0.3182, "AX": 40, "AY": 15, "AZ": 30, "BA": 5, "histYears": [2022, 2023, 2024, 2025, 2026]}
+];
+
+function pct(x,d=1){ if(x===null||x===undefined||x==='-') return '—'; return (x*100).toFixed(d)+'%'; }
+function num(x){ if(x===null||x===undefined||x==='-') return '—'; return Math.round(x).toLocaleString('es-CL'); }
+function signedNum(x){ if(x===null||x===undefined) return '—'; return (x>0?'+':'')+Math.round(x).toLocaleString('es-CL'); }
+function calcMetas(row){
+  const opt = row.opciones[String(row.AH)];
+  if(!opt || opt.val==='-' || opt.val===null) return null;
+  return {AI:opt.val, AJ:row.MAJ, AK:row.MAK, AL:row.MAL};
+}
+function buildTopbar(){
+  const el = document.getElementById('topbarStats');
+  const totalAI = DATA.reduce((s,r)=>{const m=calcMetas(r);return s+(m?m.AI:0);},0);
+  const totalCupos27 = DATA.reduce((s,r)=>s+(r.AZ||0),0);
+  const totalHist2026 = DATA.reduce((s,r)=>s+r.hist[4],0);
+  el.innerHTML = `<div class="stat"><b>${DATA.length}</b>Carreras</div><div class="stat"><b>${num(totalHist2026)}</b>Matrícula 30 abr 2026 (total)</div><div class="stat"><b>${num(totalAI)}</b>Meta 30 abr 2027 (suma)</div><div class="stat"><b>${num(totalCupos27)}</b>Cupos 2027 (total)</div>`;
+}
+function renderCard(row, idx){
+  const cardId = 'card_'+idx;
+  const maxHist = Math.max(...row.hist);
+  const histBars = row.hist.map((v,i)=>{
+    const h = maxHist>0 ? Math.max(6,(v/maxHist)*100) : 6;
+    const isCurrent = i===row.hist.length-1;
+    return `<div class="hist-bar-wrap"><div class="hist-val">${num(v)}</div><div class="hist-bar ${isCurrent?'current':''}" style="height:${h}%"></div><div class="hist-year">${row.histYears[i]}</div></div>`;
+  }).join('');
+  const cumplPct = row.AB ? (row.hist[4]/row.AB) : null;
+  const cumplClass = cumplPct!==null && cumplPct>=1 ? 'ok' : 'warn';
+  const rmItems = [
+    {v:num(row.AG), l:'Prom. matrícula sistema RM 2026 (excl. UAH)'},
+    {v:num(row.AO), l:'N° instituciones sistema RM'},
+    {v:signedNum(row.AP), l:'UAH vs prom. sistema RM (N)', cls: row.AP>=0?'pos':'neg'},
+    {v:signedNum(row.AQ), l:'Crecimiento N sistema RM', cls: row.AQ>=0?'pos':'neg'},
+    {v:pct(row.AR,1), l:'% crecimiento sistema RM', cls: row.AR>=0?'pos':'neg'},
+    {v:pct(row.BD,1), l:'% matrícula centralizada / seleccionados 2026'},
+  ];
+  const rmHtml = rmItems.map(it=>`<div class="rm-item"><div class="v ${it.cls||''}">${it.v}</div><div class="l">${it.l}</div></div>`).join('');
+  const chosenOpt = row.opciones[String(row.AH)];
+  return `<div class="card" data-card="${cardId}">
+    <div class="card-head"><div class="tag">${row.facultad}</div><h2>${row.carrera}</h2><div class="codes">SIGA ${row.siga} · DEMRE ${row.demre}</div></div>
+    <div class="section"><div class="section-title">Contexto · Sistema RM</div><div class="rm-grid">${rmHtml}</div></div>
+    <div class="section"><div class="section-title">Matrícula histórica (30 abril)</div><div class="hist-row">${histBars}</div>
+      <div class="cumpl-row"><span class="cumpl-label">Cumplimiento meta 2026 (1er sem.)</span><span class="cumpl-badge ${cumplClass}">${cumplPct!==null?pct(cumplPct,0):'—'}</span></div></div>
+    <div class="section"><div class="section-title">Opción elegida</div>
+      <div class="opt-row selected" style="cursor:default;"><span>Op ${row.AH} · ${chosenOpt.label}</span><span class="val">${num(chosenOpt.val)}</span></div></div>
+    <div class="section"><div class="section-title">Metas 2027</div>
+      <div class="meta-hero"><span class="l">Meta 30 abril</span><span class="v" data-out="${cardId}_AI">—</span></div>
+      <div class="meta-sub"><div class="item"><div class="v" data-out="${cardId}_AJ">—</div><div class="l">Admisión acum.</div></div>
+        <div class="item"><div class="v" data-out="${cardId}_AK">—</div><div class="l">Centralizada</div></div>
+        <div class="item"><div class="v" data-out="${cardId}_AL">—</div><div class="l">Directa</div></div></div></div>
+    <div class="section"><div class="section-title">Cupos y sobrecupos</div>
+      <div class="cupos-grid">
+        <div class="cupos-col"><div class="yr">2026</div>
+          <div class="cupos-row"><span class="l">Cupos</span><span class="v">${num(row.AX)}</span></div>
+          <div class="cupos-row"><span class="l">Sobrecupos</span><span class="v">${num(row.AY)}</span></div>
+          <div class="cupos-bar"><div class="fill" style="width:${row.AX/(row.AX+row.AY)*100}%"></div><div class="fillsc" style="width:${row.AY/(row.AX+row.AY)*100}%"></div></div></div>
+        <div class="cupos-col next"><div class="yr">2027</div>
+          <div class="cupos-row"><span class="l">Cupos</span><span class="v">${num(row.AZ)}</span></div>
+          <div class="cupos-row"><span class="l">Sobrecupos</span><span class="v">${num(row.BA)}</span></div>
+          <div class="cupos-bar"><div class="fill" style="width:${row.AZ/(row.AZ+row.BA)*100}%"></div><div class="fillsc" style="width:${row.BA/(row.AZ+row.BA)*100}%"></div></div></div>
+      </div></div>
+  </div>`;
+}
+function updateCardOutputs(row, idx){
+  const cardId = 'card_'+idx;
+  const m = calcMetas(row);
+  const map = {AI:m?m.AI:null, AJ:m?m.AJ:null, AK:m?m.AK:null, AL:m?m.AL:null};
+  Object.entries(map).forEach(([k,v])=>{
+    const el = document.querySelector(`[data-out="${cardId}_${k}"]`);
+    if(el) el.textContent = v===null ? '—' : num(v);
+  });
+}
+function init(){
+  const grid = document.getElementById('cardsGrid');
+  grid.innerHTML = DATA.map((row,idx)=>renderCard(row,idx)).join('');
+  DATA.forEach((row,idx)=>{ updateCardOutputs(row, idx); });
+  buildTopbar();
+}
+init();
+</script>
+</body>
+</html>
